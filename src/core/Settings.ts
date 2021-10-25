@@ -113,4 +113,9 @@ export class Settings {
    * If set to true, it's allowed to rotate FrameMarker
    */
   public isRotationAllowed = true;
+
+  /**
+   * If set to true, will be created new marker, after adding an other one
+   */
+  public autoResumeDrawing = false;
 }

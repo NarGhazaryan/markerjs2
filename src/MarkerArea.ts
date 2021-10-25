@@ -760,19 +760,17 @@ export class MarkerArea {
       if (this.uiStyleSettings.logoPosition !== 'right') {
         this.logoUI.style.left = `${this.markerImageHolder.offsetLeft + 10}px`;
       } else {
-        this.logoUI.style.left = `${
-          this.markerImageHolder.offsetLeft +
+        this.logoUI.style.left = `${this.markerImageHolder.offsetLeft +
           this.markerImageHolder.offsetWidth -
           this.logoUI.clientWidth -
           10
-        }px`;
+          }px`;
       }
-      this.logoUI.style.top = `${
-        this.markerImageHolder.offsetTop +
+      this.logoUI.style.top = `${this.markerImageHolder.offsetTop +
         this.markerImageHolder.offsetHeight -
         this.logoUI.clientHeight -
         10
-      }px`;
+        }px`;
     }
   }
 
@@ -867,16 +865,14 @@ export class MarkerArea {
     this.contentDiv.style.flexShrink = '1';
     if (this.settings.displayMode === 'popup') {
       this.contentDiv.style.backgroundColor = this.uiStyleSettings.canvasBackgroundColor;
-      this.contentDiv.style.maxHeight = `${
-        this.windowHeight -
+      this.contentDiv.style.maxHeight = `${this.windowHeight -
         this.settings.popupMargin * 2 -
         this.uiStyleSettings.toolbarHeight * 3.5
-      }px`;
+        }px`;
       // this.contentDiv.style.maxHeight = `calc(100vh - ${
       //   this.settings.popupMargin * 2 + this.uiStyleSettings.toolbarHeight * 3.5}px)`;
-      this.contentDiv.style.maxWidth = `calc(100vw - ${
-        this.settings.popupMargin * 2
-      }px)`;
+      this.contentDiv.style.maxWidth = `calc(100vw - ${this.settings.popupMargin * 2
+        }px)`;
     }
     this.contentDiv.style.overflow = 'auto';
     this.uiDiv.appendChild(this.contentDiv);
@@ -901,9 +897,8 @@ export class MarkerArea {
         ? document.createElement('img')
         : document.createElement('canvas');
     if (this.target.getClientRects().item(0).y < Style.settings.toolbarHeight) {
-      this.editingTarget.style.marginTop = `${
-        this.target.offsetTop - Style.settings.toolbarHeight
-      }px`;
+      this.editingTarget.style.marginTop = `${this.target.offsetTop - Style.settings.toolbarHeight
+        }px`;
     }
     this.editorCanvas.appendChild(this.editingTarget);
 
@@ -1050,9 +1045,8 @@ export class MarkerArea {
       this.notesArea.style.pointerEvents = 'auto';
       this.notesArea.style.alignSelf = 'stretch';
       this.notesArea.style.width = '100%';
-      this.notesArea.style.margin = `${
-        this.uiStyleSettings.toolbarHeight / 4
-      }px`;
+      this.notesArea.style.margin = `${this.uiStyleSettings.toolbarHeight / 4
+        }px`;
       this.notesArea.value = this.currentMarker.notes ?? '';
       this.overlayContainer.appendChild(this.notesArea);
     }
@@ -1240,11 +1234,10 @@ export class MarkerArea {
     this.markerImage.style.cursor = 'default';
     this.markers.push(marker);
     this.setCurrentMarker(marker);
-    if (
-      marker instanceof FreehandMarker &&
-      this.settings.newFreehandMarkerOnPointerUp
-    ) {
+    if (marker instanceof FreehandMarker && this.settings.newFreehandMarkerOnPointerUp) {
       this.createNewMarker(FreehandMarker);
+    } else if (marker instanceof FrameMarker && this.settings.autoResumeDrawing) {
+      this.createNewMarker(FrameMarker);
     } else {
       this.toolbar.setSelectMode();
     }
@@ -1407,11 +1400,10 @@ export class MarkerArea {
         this.coverDiv.style.left = '0px';
         this.coverDiv.style.width = '100vw';
         this.coverDiv.style.height = `${this.windowHeight}px`;
-        this.contentDiv.style.maxHeight = `${
-          this.windowHeight -
+        this.contentDiv.style.maxHeight = `${this.windowHeight -
           this.settings.popupMargin * 2 -
           this.uiStyleSettings.toolbarHeight * 3.5
-        }px`;
+          }px`;
       }
     }
     this.positionMarkerImage();

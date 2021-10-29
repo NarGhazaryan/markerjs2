@@ -49,6 +49,11 @@ export type RenderEventHandler = (
 export type CloseEventHandler = () => void;
 
 /**
+ * Event handler type for {@linkcode MarkerBase} `deselect` event.
+ */
+export type DeselectEventHandler = (currentMarker: MarkerBase) => void;
+
+/**
  * MarkerArea is the main class of marker.js 2. It controls the behavior and appearance of the library.
  *
  * The simplest marker.js 2 usage scenario looks something like this:
@@ -215,6 +220,7 @@ export class MarkerArea {
 
   private renderEventListeners: RenderEventHandler[] = [];
   private closeEventListeners: CloseEventHandler[] = [];
+  private deselectEventListeners: DeselectEventHandler[] = [];
 
   public settings: Settings = new Settings();
   public uiStyleSettings: IStyleSettings;
@@ -497,6 +503,14 @@ export class MarkerArea {
   }
 
   /**
+   * Deselect event listeners
+   * @param listener - a method handling marker deselecting results
+   */
+  public addDeselectEventListener(listener: DeselectEventHandler): void {
+    this.deselectEventListeners.push(listener);
+  }
+
+  /**
    * Remove a `render` event handler.
    *
    * @param listener - previously registered `render` event handler.
@@ -505,6 +519,20 @@ export class MarkerArea {
     if (this.renderEventListeners.indexOf(listener) > -1) {
       this.renderEventListeners.splice(
         this.renderEventListeners.indexOf(listener),
+        1
+      );
+    }
+  }
+
+  /**
+   * Remove a `deselect` event handler.
+   *
+   * @param listener - previously registered `deselect` event handler.
+   */
+  public removeDeselectEventListener(listener: DeselectEventHandler): void {
+    if (this.deselectEventListeners.indexOf(listener) > -1) {
+      this.deselectEventListeners.splice(
+        this.deselectEventListeners.indexOf(listener),
         1
       );
     }
@@ -1266,6 +1294,9 @@ export class MarkerArea {
       this.currentMarker.deselect();
       this.toolbar.setCurrentMarker();
       this.toolbox.setPanelButtons([]);
+      if(marker === undefined){
+        this.deselectEventListeners.forEach(listener => listener(this.currentMarker));
+      }
     }
     this.currentMarker = marker;
     if (this.currentMarker !== undefined) {

@@ -52,6 +52,7 @@ export type CloseEventHandler = () => void;
  * Event handler type for {@linkcode MarkerBase} `deselect` event.
  */
 export type DeselectEventHandler = (currentMarker: MarkerBase) => void;
+export type SelectEventHandler = (currentMarker: MarkerBase, currentIndex: number, markers: MarkerBase[]) => void;
 
 /**
  * MarkerArea is the main class of marker.js 2. It controls the behavior and appearance of the library.
@@ -221,6 +222,7 @@ export class MarkerArea {
   private renderEventListeners: RenderEventHandler[] = [];
   private closeEventListeners: CloseEventHandler[] = [];
   private deselectEventListeners: DeselectEventHandler[] = [];
+  private selectEventListeners: SelectEventHandler[] = [];
 
   public settings: Settings = new Settings();
   public uiStyleSettings: IStyleSettings;
@@ -511,6 +513,14 @@ export class MarkerArea {
   }
 
   /**
+   * Select event listeners
+   * @param listener - a method handling marker selecting results
+   */
+  public addSelectEventListener(listener: SelectEventHandler): void {
+    this.selectEventListeners.push(listener);
+  }
+
+  /**
    * Remove a `render` event handler.
    *
    * @param listener - previously registered `render` event handler.
@@ -533,6 +543,20 @@ export class MarkerArea {
     if (this.deselectEventListeners.indexOf(listener) > -1) {
       this.deselectEventListeners.splice(
         this.deselectEventListeners.indexOf(listener),
+        1
+      );
+    }
+  }
+
+  /**
+   * Remove a `select` event handler.
+   *
+   * @param listener - previously registered `select` event handler.
+   */
+   public removeSelectEventListener(listener: SelectEventHandler): void {
+    if (this.selectEventListeners.indexOf(listener) > -1) {
+      this.selectEventListeners.splice(
+        this.selectEventListeners.indexOf(listener),
         1
       );
     }
@@ -1211,6 +1235,7 @@ export class MarkerArea {
       if (markerType !== undefined) {
         const marker = this.addNewMarker(markerType);
         marker.restoreState(markerState);
+        marker.id = this.markers.length;
         this.markers.push(marker);
       }
     });
@@ -1257,7 +1282,10 @@ export class MarkerArea {
     this.toolbox.setPanelButtons(this.currentMarker.toolboxPanels);
   }
 
-  private markerCreated(marker: MarkerBase) {
+  private markerCreated(mr: MarkerBase) {
+    const marker = mr;
+    marker.id = this.markers.length;
+
     this.mode = 'select';
     this.markerImage.style.cursor = 'default';
     this.markers.push(marker);
@@ -1294,7 +1322,7 @@ export class MarkerArea {
       this.currentMarker.deselect();
       this.toolbar.setCurrentMarker();
       this.toolbox.setPanelButtons([]);
-      if(marker === undefined){
+      if (marker === undefined) {
         this.deselectEventListeners.forEach(listener => listener(this.currentMarker));
       }
     }
@@ -1303,6 +1331,7 @@ export class MarkerArea {
       this.currentMarker.select();
       this.toolbar.setCurrentMarker(this.currentMarker);
       this.toolbox.setPanelButtons(this.currentMarker.toolboxPanels);
+      this.selectEventListeners.forEach(listener => listener(this.currentMarker, this.markers.indexOf(this.currentMarker), this.markers));
     }
   }
 

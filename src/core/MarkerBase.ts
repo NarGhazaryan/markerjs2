@@ -49,6 +49,16 @@ export class MarkerBase {
   public notes?: string;
 
   /**
+   * Marker ID in markerArea.markers
+   */
+  public id?: number;
+
+  /**
+   * ANotation label
+   */
+  public label?: string;
+
+  /**
    * Returns the list of toolbox panels for this marker type.
    */
   public get toolboxPanels(): ToolboxPanel[] {
@@ -156,6 +166,15 @@ export class MarkerBase {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   public dispose(): void {}
 
+  /**
+   * Change marker label
+   * @param label - new label for anotation
+   */
+
+  public setMarkerLabel(label: string): void{
+    this.label = label;
+  }
+
   protected addMarkerVisualToContainer(element: SVGElement): void {
     if (this.container.childNodes.length > 0) {
       this.container.insertBefore(element, this.container.childNodes[0]);
@@ -171,7 +190,9 @@ export class MarkerBase {
     return { 
       typeName: MarkerBase.typeName, 
       state: this.state,
-      notes: this.notes
+      notes: this.notes,
+      id: this.id,
+      label: this.label
     };
   }
 
@@ -183,6 +204,8 @@ export class MarkerBase {
   public restoreState(state: MarkerBaseState): void {
     this._state = state.state;
     this.notes = state.notes;
+    this.label = state.label;
+    this.id = state.id;
   }
 
   /**

@@ -53,6 +53,7 @@ export type CloseEventHandler = () => void;
  */
 export type DeselectEventHandler = (currentMarker: MarkerBase) => void;
 export type SelectEventHandler = (currentMarker: MarkerBase, currentIndex: number, markers: MarkerBase[]) => void;
+export type DeleteEventHandler = (currentMarker: MarkerBase, note: string) => void;
 
 /**
  * MarkerArea is the main class of marker.js 2. It controls the behavior and appearance of the library.
@@ -207,7 +208,7 @@ export class MarkerArea {
   private toolbar: Toolbar;
   private toolbox: Toolbox;
 
-  private mode: MarkerAreaMode = 'select';
+  private mode: MarkerAreaMode = 'create';
 
   private currentMarker?: MarkerBase;
   private markers: MarkerBase[] = [];
@@ -223,6 +224,7 @@ export class MarkerArea {
   private closeEventListeners: CloseEventHandler[] = [];
   private deselectEventListeners: DeselectEventHandler[] = [];
   private selectEventListeners: SelectEventHandler[] = [];
+  private deleteEventListeners: DeleteEventHandler[] = [];
 
   public settings: Settings = new Settings();
   public uiStyleSettings: IStyleSettings;
@@ -521,6 +523,14 @@ export class MarkerArea {
   }
 
   /**
+   * Delete event listeners
+   * @param listener - a method handling marker selecting results
+   */
+  public addDeleteEventListener(listener: DeleteEventHandler): void {
+    this.deleteEventListeners.push(listener);
+  }
+
+  /**
    * Remove a `render` event handler.
    *
    * @param listener - previously registered `render` event handler.
@@ -553,10 +563,24 @@ export class MarkerArea {
    *
    * @param listener - previously registered `select` event handler.
    */
-   public removeSelectEventListener(listener: SelectEventHandler): void {
+  public removeSelectEventListener(listener: SelectEventHandler): void {
     if (this.selectEventListeners.indexOf(listener) > -1) {
       this.selectEventListeners.splice(
         this.selectEventListeners.indexOf(listener),
+        1
+      );
+    }
+  }
+
+  /**
+   * Remove a `delete` event handler.
+   *
+   * @param listener - previously registered `delete` event handler.
+   */
+  public removeDeleteEventListener(listener: DeleteEventHandler): void {
+    if (this.deleteEventListeners.indexOf(listener) > -1) {
+      this.deleteEventListeners.splice(
+        this.deleteEventListeners.indexOf(listener),
         1
       );
     }
@@ -1060,6 +1084,7 @@ export class MarkerArea {
    */
   public deleteSelectedMarker(): void {
     if (this.currentMarker !== undefined) {
+      this.deleteEventListeners.forEach(listener => listener(this.currentMarker, this.currentMarker.notes));
       this.currentMarker.dispose();
       this.markerImage.removeChild(this.currentMarker.container);
       this.markers.splice(this.markers.indexOf(this.currentMarker), 1);
@@ -1089,29 +1114,35 @@ export class MarkerArea {
     return this.notesArea !== undefined;
   }
 
-  private showNotesEditor() {
+  public showNotesEditor(node = null): { notesArea: HTMLTextAreaElement, currentValue: string } {
     if (this.currentMarker !== undefined) {
       this.overlayContainer.innerHTML = '';
-      this.notesArea = document.createElement('textarea');
+      this.notesArea = node || document.createElement('textarea');
       this.notesArea.className = this.uiStyleSettings.notesAreaStyleClassName;
-      this.notesArea.style.pointerEvents = 'auto';
-      this.notesArea.style.alignSelf = 'stretch';
-      this.notesArea.style.width = '100%';
-      this.notesArea.style.margin = `${this.uiStyleSettings.toolbarHeight / 4
-        }px`;
+      if (!node) {
+        this.notesArea.style.pointerEvents = 'auto';
+        this.notesArea.style.alignSelf = 'stretch';
+        this.notesArea.style.width = '100%';
+        this.notesArea.style.margin = `${this.uiStyleSettings.toolbarHeight / 4
+          }px`;
+      }
       this.notesArea.value = this.currentMarker.notes ?? '';
       this.overlayContainer.appendChild(this.notesArea);
+
+      return { notesArea: this.notesArea, currentValue: this.currentMarker.notes };
     }
   }
-  private hideNotesEditor() {
+  public hideNotesEditor(): string {
     if (this.isNotesAreaOpen) {
       if (this.currentMarker !== undefined) {
+        this.currentMarker.prevNotes = this.currentMarker.notes;
         this.currentMarker.notes =
           this.notesArea.value.trim() !== '' ? this.notesArea.value : undefined;
       }
       this.overlayContainer.removeChild(this.notesArea);
       this.notesArea = undefined;
     }
+    return this.currentMarker?.notes;
   }
 
   private selectLastMarker() {

@@ -21,12 +21,15 @@ export interface MarkerBaseState {
    * @since 2.10.0
    */
   notes?: string;
+
+  /**
+   * Previous additional information about the marker.
+   * 
+   * @since 1.4.22
+   */
+   prevNotes?: string;
   /**
    * ID in markers array
    */
   id?: number;
-  /**
-   * Anotation label
-   */
-  label?: string;
 }

@@ -49,15 +49,15 @@ export class MarkerBase {
   public notes?: string;
 
   /**
+   * Previous additional information about the marker
+   */
+   public prevNotes?: string;
+
+  /**
    * Marker ID in markerArea.markers
    */
   public id?: number;
-
-  /**
-   * ANotation label
-   */
-  public label?: string;
-
+  
   /**
    * Returns the list of toolbox panels for this marker type.
    */
@@ -168,11 +168,11 @@ export class MarkerBase {
 
   /**
    * Change marker label
-   * @param label - new label for anotation
+   * @param note - new label for anotation
    */
 
-  public setMarkerLabel(label: string): void{
-    this.label = label;
+  public setMarkerNotes(note: string): void{
+    this.notes = note;
   }
 
   protected addMarkerVisualToContainer(element: SVGElement): void {
@@ -191,8 +191,8 @@ export class MarkerBase {
       typeName: MarkerBase.typeName, 
       state: this.state,
       notes: this.notes,
+      prevNotes: this.prevNotes,
       id: this.id,
-      label: this.label
     };
   }
 
@@ -204,12 +204,12 @@ export class MarkerBase {
   public restoreState(state: MarkerBaseState): void {
     this._state = state.state;
     this.notes = state.notes;
-    this.label = state.label;
+    this.prevNotes = state.prevNotes;
     this.id = state.id;
   }
 
   /**
-   * Scales marker. Used after the image resize.
+   * Sales marker. Used after the image resize.
    * 
    * @param scaleX - horizontal scale
    * @param scaleY - vertical scale

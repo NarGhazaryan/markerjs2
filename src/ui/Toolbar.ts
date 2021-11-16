@@ -5,7 +5,7 @@ import CursorIcon from './toolbar-core-icons/cursor.svg';
 import DeleteIcon from './toolbar-core-icons/delete.svg';
 import ClearIcon from './toolbar-core-icons/clear.svg';
 import CheckIcon from './toolbar-core-icons/check.svg';
-import CloseIcon from './toolbar-core-icons/close.svg';
+// import CloseIcon from './toolbar-core-icons/close.svg';
 import OverflowIcon from './toolbar-core-icons/overflow.svg';
 import UndoIcon from './toolbar-core-icons/undo.svg';
 import RedoIcon from './toolbar-core-icons/redo.svg';
@@ -175,7 +175,7 @@ export class Toolbar {
     this.uiContainer.appendChild(resultButtonBlock);
 
     this.addActionButton(resultButtonBlock, CheckIcon, 'render');
-    this.addActionButton(resultButtonBlock, CloseIcon, 'close');
+    // this.addActionButton(resultButtonBlock, CloseIcon, 'close');
 
     this.markerjsContainer.appendChild(this.uiContainer);
     this.setSelectMode();

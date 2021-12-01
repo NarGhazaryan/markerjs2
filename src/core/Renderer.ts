@@ -5,7 +5,7 @@ export class Renderer {
     /**
      * Whether the image should be rendered at the original (natural) target image size.
      */
-    public naturalSize = false; 
+    public naturalSize = true; 
     /**
      * Rendered image type (`image/png`, `image/jpeg`, etc.).
      */

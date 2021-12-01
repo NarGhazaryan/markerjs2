@@ -54,6 +54,8 @@ export type CloseEventHandler = () => void;
 export type DeselectEventHandler = (currentMarker: MarkerBase) => void;
 export type SelectEventHandler = (currentMarker: MarkerBase, currentIndex: number, markers: MarkerBase[]) => void;
 export type DeleteEventHandler = (currentMarker: MarkerBase, note: string) => void;
+export type EmptyNotesEventListener = (markersWithoutNotes: MarkerBase[]) => void;
+export type MoveEventListener = (currentMarker: MarkerBase) => void;
 
 /**
  * MarkerArea is the main class of marker.js 2. It controls the behavior and appearance of the library.
@@ -82,8 +84,9 @@ export class MarkerArea {
 
   private width: number;
   private height: number;
-  private imageWidth: number;
-  private imageHeight: number;
+  public imageWidth: number;
+  public imageHeight: number;
+
   private left: number;
   private top: number;
   private windowHeight: number;
@@ -205,7 +208,7 @@ export class MarkerArea {
     });
   }
 
-  private toolbar: Toolbar;
+  public toolbar: Toolbar;
   private toolbox: Toolbox;
 
   private mode: MarkerAreaMode = 'create';
@@ -225,6 +228,8 @@ export class MarkerArea {
   private deselectEventListeners: DeselectEventHandler[] = [];
   private selectEventListeners: SelectEventHandler[] = [];
   private deleteEventListeners: DeleteEventHandler[] = [];
+  private emptyNotesEVentListeners: EmptyNotesEventListener[] = [];
+  private moveEventListeners: MoveEventListener[] = [];
 
   public settings: Settings = new Settings();
   public uiStyleSettings: IStyleSettings;
@@ -247,9 +252,9 @@ export class MarkerArea {
    * When set to true resulting image will be rendered at the natural (original) resolution
    * of the target image. Otherwise (default), screen dimensions of the image are used.
    *
-   * @default false (use screen dimensions)
+   * @default true (use natural size of image)
    */
-  public renderAtNaturalSize = false;
+  public renderAtNaturalSize = true;
   /**
    * Type of image for the rendering result. Eg. `image/png` (default) or `image/jpeg`.
    *
@@ -531,6 +536,22 @@ export class MarkerArea {
   }
 
   /**
+   * Event listeners called, when one of the Markers have no Notes
+   * @param listener - a method handling marker selecting results
+   */
+   public addNoNotesEventListener(listener: EmptyNotesEventListener): void {
+    this.emptyNotesEVentListeners.push(listener);
+  }
+
+  /**
+   * Marker move event listeners 
+   * @param listener - a method handling marker selecting results
+   */
+   public addMoveEventListener(listener: MoveEventListener): void {
+    this.moveEventListeners.push(listener);
+  }
+
+  /**
    * Remove a `render` event handler.
    *
    * @param listener - previously registered `render` event handler.
@@ -581,6 +602,33 @@ export class MarkerArea {
     if (this.deleteEventListeners.indexOf(listener) > -1) {
       this.deleteEventListeners.splice(
         this.deleteEventListeners.indexOf(listener),
+        1
+      );
+    }
+  }
+
+  /**
+   * Remove a `delete` event handler.
+   *
+   * @param listener - previously registered `delete` event handler.
+   */
+   public removeMoveEventListener(listener: MoveEventListener): void {
+    if (this.moveEventListeners.indexOf(listener) > -1) {
+      this.moveEventListeners.splice(
+        this.moveEventListeners.indexOf(listener),
+        1
+      );
+    }
+  }
+
+  /**
+   * Remove an Event listener called, when one of the Markers have no Notes
+   * @param listener - a method handling marker selecting results
+   */
+   public removeNoNotesEventListener(listener: EmptyNotesEventListener): void {
+    if (this.emptyNotesEVentListeners.indexOf(listener) > -1) {
+      this.emptyNotesEVentListeners.splice(
+        this.emptyNotesEVentListeners.indexOf(listener),
         1
       );
     }
@@ -1082,13 +1130,15 @@ export class MarkerArea {
   /**
    * Removes currently selected marker.
    */
-  public deleteSelectedMarker(): void {
+  public deleteSelectedMarker(deselect = true): void {
     if (this.currentMarker !== undefined) {
       this.deleteEventListeners.forEach(listener => listener(this.currentMarker, this.currentMarker.notes));
       this.currentMarker.dispose();
       this.markerImage.removeChild(this.currentMarker.container);
       this.markers.splice(this.markers.indexOf(this.currentMarker), 1);
-      this.setCurrentMarker();
+      if(deselect){
+        this.setCurrentMarker();
+      }
       this.addUndoStep();
     }
   }
@@ -1215,10 +1265,15 @@ export class MarkerArea {
    * Get results by adding a render event listener via {@linkcode addRenderEventListener}.
    */
   public async startRenderAndClose(): Promise<void> {
-    const result = await this.render();
-    const state = this.getState();
-    this.renderEventListeners.forEach((listener) => listener(result, state));
-    this.close();
+    const markersWithoutNotes = this.markers.filter(marker => marker.notes === undefined);
+    if (!this.markers.length || !markersWithoutNotes.length) {
+      const result = await this.render();
+      const state = this.getState();
+      this.renderEventListeners.forEach((listener) => listener(result, state));
+      this.close();
+    } else {
+      this.emptyNotesEVentListeners.forEach((listener) => listener(markersWithoutNotes))
+    }
   }
 
   /**
@@ -1425,9 +1480,10 @@ export class MarkerArea {
         }
 
         if (this.currentMarker !== undefined) {
-          this.currentMarker.manipulate(
-            this.clientToLocalCoordinates(ev.clientX, ev.clientY)
-          );
+          this.currentMarker.manipulate(this.clientToLocalCoordinates(ev.clientX, ev.clientY));
+          if(this.currentMarker.state === 'move'){
+            this.moveEventListeners.forEach((listener)=> listener(this.currentMarker));
+          }
         } else if (this.zoomLevel > 1) {
           this.panTo({ x: ev.clientX, y: ev.clientY });
         }

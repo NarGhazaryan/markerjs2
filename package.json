@@ -1,11 +1,11 @@
 {
   "name": "mjs2-ngv",
-  "version": "1.4.25",
+  "version": "1.5.11",
   "description": "JavaScript image annotation",
   "main": "markerjs2.js",
   "module": "markerjs2.esm.js",
   "types": "markerjs2.d.ts",
-  "author": "Alan Mendelevich | edit by NG",
+  "author": "Alan Mendelevich | edit by Narek Ghazaryan",
   "license": "SEE LICENSE IN LICENSE",
   "scripts": {
     "lint": "eslint src",
